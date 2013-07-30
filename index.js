@@ -121,13 +121,35 @@ function removeShortestMotion(motions) {
     }
   }
 
-  if (shortestIx > 0)
+  if (shortestIx >= 0) {
     motions.splice(shortestIx, 1);
-
+    return shortestDistance;
+  } else {
+    return 0;
+  }
+    
 }
 
-function recognise(gestures, motions) {
-
+function recognise(allGestures, thisGesture) {
+  var m1 = thisGesture.motions;
+  for (var i = 0, gl = allGestures.length; i < gl; ++i) {
+    var g = allGestures[i], m2 = g.motions;
+    if (m1.length != m2.length) {
+      continue;
+    } else {
+      var match = true;
+      for (var j = 0, ml = m1.length; j < ml; ++j) {
+        if (m1[j].direction !== m2[j]) {
+          match = false;
+          break;
+        }
+      }
+      if (match && (!g.guard || g.guard(thisGesture))) {
+        return g.id;
+      }
+    }
+  }
+  return null;
 }
 
 /**
@@ -167,33 +189,39 @@ function recognise(gestures, motions) {
 function create(gestures, options) {
 
   var options           = options || {},
-      minSegmentLength  = options.minSegmentLength || DEFAULT_MIN_SEGMENT_LENGTH;
+      minSegmentLength  = options.minSegmentLength || DEFAULT_MIN_SEGMENT_LENGTH,
+      removalThreshold  = options.removalThreshold || 0.2;
 
   return function(points) {
 
-    points = filter(points, minSegmentLength);
+    // TODO: decorate gesture with extra meta data e.g. bounding box
+    var inputGesture = {
+      motions: mergeDuplicates(parse(filter(points, minSegmentLength)))
+    };
 
-    var motions = parse(points);
-    var merged = mergeDuplicates(motions);
+    var totalDistance = 0;
+    inputGesture.motions.forEach(function(m) { totalDistance += m.distance; });
+
+    var minDistance = totalDistance - (totalDistance * removalThreshold);
+
+    while (inputGesture.motions.length) {
+      var gestureId = recognise(gestures, inputGesture);
+      if (gestureId) {
+        return gestureId;
+      } else {
+        totalDistance -= removeShortestMotion(inputGesture.motions);
+        if (totalDistance < minDistance) {
+          break;
+        } else {
+          inputGesture.motions = mergeDuplicates(inputGesture.motions);
+        }
+      }
+    }
+
+    return null;
 
   }
 
 }
-
-
-
-var points = [
-  0, 0,
-  40, 0,
-  40, 100,
-  20, 100,
-  20, 20,
-  20, -80,
-  40, 100
-];
-
-console.log(mergeDuplicates(parse(points)));
-
-
 
 exports.createGestureRecogniser = create;
