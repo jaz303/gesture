@@ -1,6 +1,8 @@
 var atan2       = Math.atan2,
     sqrt        = Math.sqrt;
 
+var DEFAULT_MIN_SEGMENT_LENGTH = 20;
+
 var EAST        = 0,
     SOUTH       = Math.PI / 2,
     WEST        = Math.PI,
@@ -124,15 +126,57 @@ function removeShortestMotion(motions) {
 
 }
 
-function gesture(points, options) {
+function recognise(gestures, motions) {
 
-  options = options || {};
+}
 
-  var filteredPoints = filter(points, options.minLength || 10);
-  var motions = parse(filteredPoints);
-  var merged = mergeDuplicates(motions);
+/**
+ * creates a gesture recogniser.
+ * 
+ * gestures is an array of recognised gestures.
+ * each gesture looks like this:
+ *
+ * { id: 'foo',
+ *   motions: ['n', 's', 'e'],
+ *   guard: function(gesture) { ... }
+ * }
+ *
+ * `id` is the string to be returned when this gestured is
+ * successfully recognised.
+ *
+ * `motions` is the sequence of motions a gesture must match before
+ * it will be recognised.
+ *
+ * `guard` is an optional callback function that can perform a final
+ * acceptance check on a gesture that matches the motion sequence.
+ * for example, you way wish to check the ratio of the gesture's
+ * bounding box falls within some acceptable range.
+ *
+ * the guard function, when specified, receives the entire gesture
+ * description as an input. a gesture looks like this:
+ *
+ * { x: 10, y: 20,
+ *   width: 252, height: 310,
+ *   motions: [
+ *     {direction: 'e', distance: 252},
+ *     {direction: 's', distance: 310}
+ *   ]
+ * }
+ *
+ */
+function create(gestures, options) {
 
-  return merged;
+  var options           = options || {},
+      minSegmentLength  = options.minSegmentLength || DEFAULT_MIN_SEGMENT_LENGTH;
+
+  return function(points) {
+
+    points = filter(points, minSegmentLength);
+
+    var motions = parse(points);
+    var merged = mergeDuplicates(motions);
+
+  }
 
 }
 
@@ -152,3 +196,4 @@ console.log(mergeDuplicates(parse(points)));
 
 
 
+exports.createGestureRecogniser = create;
