@@ -1,0 +1,17 @@
+{
+  "name": "gesture",
+  "version": "0.0.1",
+  "description": "single-point gesture recogniser",
+  "main": "index.js",
+  "keywords": [
+    "gesture",
+    "recogniser",
+    "recognizer"
+  ],
+  "author": "Jason Frame <jason@onehackoranother.com> (jasonframe.co.uk)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jaz303/gesture.git"
+  }
+}
