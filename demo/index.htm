@@ -1,0 +1,91 @@
+
+<html>
+  <head>
+    <title>Gesture</title>
+    <script src='gesture.js'></script>
+    <style type='text/css'>
+      #surface { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+    </style>
+    <script>
+      function init() {
+
+        var recognize = createGestureRecogniser([
+          {id: 'horizontal', motions: ['e']},
+          {id: 'horizontal', motions: ['w']},
+          {id: 'vertical', motions: ['n']},
+          {id: 'vertical', motions: ['s']},
+          {id: 'tab', motions: ['e', 's']},
+          {id: 'tab', motions: ['w', 's']},
+          {id: 'close', motions: ['se']},
+          {id: 'close', motions: ['sw']},
+          {id: 'close', motions: ['ne']},
+          {id: 'close', motions: ['nw']},
+        ]);
+
+        var surface     = document.getElementById('surface'),
+            path        = document.getElementById('path'),
+            dragging    = false,
+            pathPoints  = null,
+            pathString  = null;
+    
+        surface.addEventListener('mousedown', function(evt) {
+          dragging = true;
+          newPath(evt.offsetX, evt.offsetY);
+        });
+    
+        surface.addEventListener('mousemove', function(evt) {
+          if (dragging) {
+            appendPath(evt.offsetX, evt.offsetY);
+          }
+        });
+    
+        surface.addEventListener('mouseup', function() {
+          console.log(recognize(pathPoints));
+          dragging = false;
+          clearPath();
+        });
+    
+        function newPath(x, y) {
+          pathPoints = [x, y];
+          pathString = "M " + x + " " + y;
+        }
+        
+        function appendPath(x, y) {
+          pathPoints.push(x);
+          pathPoints.push(y);
+          pathString += " L " + x + " " + y;
+          path.setAttribute('d', pathString);
+        }
+        
+        function clearPath() {
+          pathPoints = null;
+          pathString = null;
+          path.setAttribute('d', 'M 0 0');
+        }
+    
+        // rect.addEventListener('m')
+
+      }
+    </script>
+  </head>
+  <body onload='init()'>
+
+    <svg xmlns="http://www.w3.org/2000/svg"
+         version="1.1"
+         id='surface'
+         baseProfile='full'>
+      <rect fill='black'
+            fill-opacity='0.3'
+            x='0' y='0'
+            width='100%' height='100%'
+            id='rect'/>
+      <path id='path'
+              fill='none'
+              stroke='red'
+              stroke-width='6'
+              stroke-opacity='0.5'
+              d='M 0 0' />
+    </svg>
+
+  </body>
+</html>
