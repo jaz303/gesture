@@ -34,6 +34,28 @@ function filter(points, minLength) {
 
 }
 
+function calculateBoundingBox(points) {
+
+  var minX = Infinity, maxX = -Infinity,
+      minY = Infinity, maxY = -Infinity;
+
+  for (var i = 0; i < points.length; i += 2) {
+    var x = points[i], y = points[i+1];
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  }
+
+  return {
+    x       : minX,
+    y       : minY,
+    width   : maxX - minX,
+    height  : maxY - minY
+  };
+
+}
+
 function parse(points) {
 
   var out = [];
@@ -194,26 +216,26 @@ function create(gestures, options) {
 
   return function(points) {
 
-    // TODO: decorate gesture with extra meta data e.g. bounding box
-    var inputGesture = {
-      motions: mergeDuplicates(parse(filter(points, minSegmentLength)))
-    };
+    points = filter(points, minSegmentLength);
+
+    var gesture = calculateBoundingBox(points);
+    gesture.motions = mergeDuplicates(parse(points));
 
     var totalDistance = 0;
-    inputGesture.motions.forEach(function(m) { totalDistance += m.distance; });
+    gesture.motions.forEach(function(m) { totalDistance += m.distance; });
 
     var minDistance = totalDistance - (totalDistance * removalThreshold);
 
-    while (inputGesture.motions.length) {
-      var gestureId = recognise(gestures, inputGesture);
-      if (gestureId) {
-        return gestureId;
+    while (gesture.motions.length) {
+      gesture.id = recognise(gestures, gesture);
+      if (gesture.id) {
+        return gesture;
       } else {
-        totalDistance -= removeShortestMotion(inputGesture.motions);
+        totalDistance -= removeShortestMotion(gesture.motions);
         if (totalDistance < minDistance) {
           break;
         } else {
-          inputGesture.motions = mergeDuplicates(inputGesture.motions);
+          gesture.motions = mergeDuplicates(gesture.motions);
         }
       }
     }
