@@ -1,6 +1,6 @@
 {
   "name": "gesture",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "single-point gesture recogniser",
   "main": "index.js",
   "keywords": [
